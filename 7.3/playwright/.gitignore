@@ -1,4 +1,5 @@
 /node_modules/
+users.js
 
 
 .vscode/*
@@ -10,3 +11,9 @@
 
 # Local History for Visual Studio Code
 .history/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/test-results/
+/playwright-report/
+/playwright/.cache/
