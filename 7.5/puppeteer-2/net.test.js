@@ -1,55 +1,61 @@
-const { clickElement, putText, getText } = require("./lib/commands.js");
-const { generateName } = require("./lib/util.js");
+const {
+  clickElement,
+  getText,
+  days,
+  movieTime,
+  seats,
+} = require("./lib/commands");
 
 let page;
 
 beforeEach(async () => {
   page = await browser.newPage();
-  await page.setDefaultNavigationTimeout(0);
+  await page.setDefaultNavigationTimeout(60000);
 });
 
-afterEach(() => {
-  page.close();
+afterEach(async () => {
+  await page.close();
 });
 
-describe("Netology.ru tests", () => {
+describe("GoToTheCinema test", () => {
   beforeEach(async () => {
-    page = await browser.newPage();
-    await page.goto("https://netology.ru");
+    await page.goto("http://qamid.tmweb.ru/client/index.php", {
+      timeout: 60000,
+    });
   });
 
-  test("The first test'", async () => {
-    const title = await page.title();
-    console.log("Page title: " + title);
-    await clickElement(page, "header a + a");
-    const title2 = await page.title();
-    console.log("Page title: " + title2);
-    const pageList = await browser.newPage();
-    await pageList.goto("https://netology.ru/navigation");
-    await pageList.waitForSelector("h1");
-  });
+  test("Should book ticket", async () => {
+    await days(page, "3");
+    await movieTime(page, "1", "2");
+    await page.waitForSelector("h1");
+    await seats(page, "6", "5");
+    await clickElement(page, "button");
+    await page.waitForSelector("h1");
+    const actual = await getText(page, "h2");
+    expect(actual).toContain("Вы выбрали билеты:");
+  }, 60000);
 
-  test("The first link text 'Медиа Нетологии'", async () => {
-    const actual = await getText(page, "header a + a");
-    expect(actual).toContain("Медиа Нетологии");
-  });
+  test("Should book 3 ticket", async () => {
+    await days(page, "5");
+    await movieTime(page, "2", "3");
+    await page.waitForSelector("h1");
+    await seats(page, "1", "7");
+    await seats(page, "1", "8");
+    await seats(page, "1", "9");
+    await clickElement(page, "button");
+    await page.waitForSelector("h1");
+    const actual = await getText(page, "h2");
+    expect(actual).toContain("Вы выбрали билеты:");
+  }, 60000);
 
-  test("The first link leads on 'Медиа' page", async () => {
-    await clickElement(page, "header a + a");
-    const actual = await getText(page, ".logo__media");
-    await expect(actual).toContain("Медиа");
-  });
-});
-
-test("Should look for a course", async () => {
-  await page.goto("https://netology.ru/navigation");
-  await putText(page, "input", "тестировщик");
-  const actual = await page.$eval("a[data-name]", (link) => link.textContent);
-  const expected = "Тестировщик ПО";
-  expect(actual).toContain(expected);
-});
-
-test("Should show warning if login is not email", async () => {
-  await page.goto("https://netology.ru/?modal=sign_in");
-  await putText(page, 'input[type="email"]', generateName(5));
+  test("Should't book ticket", async () => {
+    await days(page, "2");
+    await movieTime(page, "1", "3");
+    await page.waitForSelector("h1");
+    let acceptionButton = await page.$eval(
+      "button",
+      (button) => button.disabled
+    );
+    expect(acceptionButton).toBe(true);
+  }, 60000);
 });
